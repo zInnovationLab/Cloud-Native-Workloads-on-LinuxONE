@@ -5,11 +5,14 @@ Open source software has expanded from a low-cost alternative to a platform for 
 LinuxONE was built for open source so you can harness the agility of the open revolution on the industry’s most secure, scalable and high-performing Linux server. In this journey we will show how to run open source Cloud-Native workloads on LinuxONE
 
 ## Scenarios  
+
 [Scenario One: Use Docker images from Docker hub to run your workloads on LinuxONE](#scenario-one-use-docker-images-from-docker-hub-to-run-your-workloads-on-linuxone)  
 1. [WordPress](#1-install-and-run-wordpress)  
 2. [WebSphere Liberty](#2-install-and-run-websphere-liberty)  
+
 [Scenario Two: Create your own Docker images for LinuxONE](#scenario-two-create-your-own-docker-images-for-linuxone)  
 1. [GitLab]()  
+
 [Scenario Three: Use Kubernetes on LinuxONE to run your cloud-naive workloads](#scenario-three-use-kubernetes-on-linuxone-to-run-your-cloud-naive-workloads)  
 
 ## Included Components
