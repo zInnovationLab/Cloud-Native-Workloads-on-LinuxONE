@@ -6,10 +6,12 @@ LinuxONE was built for open source so you can harness the agility of the open re
 
 ## Scenarios
 
-- [Scenario One: Use Docker images from Docker hub to run your workloads on LinuxONE e.g. WordPress](#scenario-one-use-docker-images-from-docker-hub-to-run-your-workloads-on-linuxone)    
-- [Scenario Two: Create your own Docker images for LinuxONE e.g. GitLab ](#scenario-two-create-your-own-docker-images-for-linuxone)
-- [Scenario Three: Use Docker images from Docker Hub to run WebSphere Application Server](#scenario-three-use-docker-images-from-docker-hub-to-run-websphere-application-server)
-- [Scenario Four: Use Kubernetes on LinuxONE to run your cloud-naive workloads](#scenario-four-use-kubernetes-on-linuxone-to-run-your-cloud-naive-workloads)
+- [Scenario One: Use Docker images from Docker hub to run your workloads on LinuxONE](#scenario-one-use-docker-images-from-docker-hub-to-run-your-workloads-on-linuxone)
+     - 1. [WordPress](#3-run-and-install-wordpress)
+     - 2. [WebSphere Liberty]()
+- [Scenario Two: Create your own Docker images for LinuxONE](#scenario-two-create-your-own-docker-images-for-linuxone)
+     - 1. [GitLab]
+- [Scenario Three: Use Kubernetes on LinuxONE to run your cloud-naive workloads](#scenario-three-use-kubernetes-on-linuxone-to-run-your-cloud-naive-workloads)
 
 ## Included Components
 
@@ -27,20 +29,16 @@ We will be using a Ret Hat base image for this journey, so be sure to chose the
 
 ## Scenario One: Use Docker images from Docker hub to run your workloads on LinuxONE
 
-[Docker Hub](https://hub.docker.com) makes it rather simple to get started with
-containers, as there are quite a few images ready to for your to use.  You can
-browse the list of images that are compatable with LinuxONE by doing a search
-on the ['s390x'](https://hub.docker.com/search/?isAutomated=0&isOfficial=0&page=1&pullCount=0&q=s390x&starCount=0) tag.
-We will start off with everyone's favorite demo: an installation of WordPress.
-These instructions assume a base RHEL 7.2 image.  If you are using Ubuntu,
-please follow the separate [instructions](docs/ubuntu.md)
+[Docker Hub](https://hub.docker.com) makes it rather simple to get started with containers, as there are quite a few images ready to for your to use.  You can browse the list of images that are compatable with LinuxONE by doing a search on the ['s390x'](https://hub.docker.com/search/?isAutomated=0&isOfficial=0&page=1&pullCount=0&q=s390x&starCount=0) tag. We will start off with everyone's favorite demo: an installation of WordPress.
 
-### 1. Install docker
+These instructions assume a base RHEL 7.2 image. 
+
+### Install docker
 ```text
 :~$ yum install docker.io
 ```
 
-### 2. Install docker-compose
+### Install docker-compose
 
 Install dependencies
 
@@ -65,49 +63,45 @@ Finally, install docker-compose itself
 sudo pip install docker-compose
 ```
 
-### 3. Run and install WordPress
+### 1. Run and install WordPress
 
-Now that we have docker-compose installed, we will create a docker-compose.yml
-file.  This will specifiy a couple of containers from the Docker Store that
-have been specifically written for z systems.
+### 2. Run and install WebSphere Liberty
 
-```text
-vim docker-compose.yml
-```
+In this step, we will once again be using existing images from Docker Hub - this time to set up a WebSphere Application Server.  We will be implementing it for Java EE7 Full Platform compliance.
 
-```text
-version: '2'
+### 1. Setup
 
-services:
-
-  wordpress:
-    image: s390x/wordpress
-    ports:
-      - 8080:80
-    environment:
-      WORDPRESS_DB_PASSWORD: example
-
-  mysql:
-    image: brunswickheads/mariadb-5.5-s390x
-    environment:
-      MYSQL_ROOT_PASSWORD: example
-```
-
-And finally, run docker-compose (from the same directory you created the .yml)
+Our implemetation of WebSphere will be based off the [application deployment sample (https://developer.ibm.com/wasdev/docs/article_appdeployment/), which means we will first need to download the DefaultServletEngine sample and extract it to `/tmp`:
 
 ```text
-sudo docker-compose up -d
+wget https://github.com/WASdev/sample.servlet/releases/download/V1/DefaultServletEngine.zip
+unzip DefaultServletEngine.zip -d /tmp/DefaultServletEngine
+```
+We will also need to modify the server.xml file to accept HTTP connections from outside of the container:
+
+```text
+vim server.xml
+```
+Find the `server` stanza and add the following:
+```text
+<httpEndpoint host="*" httpPort="9080" httpsPort="-1"/>
 ```
 
-After all is installed, you can check the status of your containers
+### 2. Docker Run
+
+Now run the container
+
 ```text
-:~$ sudo docker-compose ps
-       Name                     Command               State          Ports         
-----------------------------------------------------------------------------------
-ubuntu_mysql_1       /docker-entrypoint.sh mysq ...   Up      3306/tcp             
-ubuntu_wordpress_1   /entrypoint.sh apache2-for ...   Up      0.0.0.0:8080->80/tcp
+$ docker run -d -p 80:9080 -p 443:9443 \
+  -v /tmp/DefaultServletEngine/dropins/Sample1.war:/config/dropins/Sample1.war \
+  websphere-liberty:webProfile7
 ```
-and if all is well, you can see your new blog at localhost:8080
+
+### 3. Browse
+
+Once the server is started, you can browse to
+`http://localhost/Sample1/SimpleServlet` on the Docker host.
+
 
 ## Scenario Two: Create your own Docker images for LinuxONE
 
@@ -268,51 +262,8 @@ project directory, create a `docker-compose.yml` file that contains:
 ```text
 $ docker-compose up
 ```
-## Scenario Three: Use Docker images from Docker Hub to run WebSphere Application Server
 
-In this scenario, we will once again be using existing images from Docker Hub -
-this time to set up a WebSphere Application Server.  We will be implementing it
-for Java EE7 Full Platform compliance.
-
-### 1. Setup
-
-Our implemetation of WebSphere will be based off the [application deployment
-sample](https://developer.ibm.com/wasdev/docs/article_appdeployment/), which
-means we will first need to download the DefaultServletEngine sample and
-extract it to `/tmp`:
-
-```text
-wget https://github.com/WASdev/sample.servlet/releases/download/V1/DefaultServletEngine.zip
-unzip DefaultServletEngine.zip -d /tmp/DefaultServletEngine
-```
-
-We will also need to modify the server.xml file to accept HTTP connections from
-outside of the container:
-
-```text
-vim server.xml
-```
-Find the `server` stanza and add the following:
-```text
-<httpEndpoint host="*" httpPort="9080" httpsPort="-1"/>
-```
-
-### 2. Docker Run
-
-Now run the container
-
-```text
-$ docker run -d -p 80:9080 -p 443:9443 \
-  -v /tmp/DefaultServletEngine/dropins/Sample1.war:/config/dropins/Sample1.war \
-  websphere-liberty:webProfile7
-```
-
-### 3. Browse
-
-Once the server is started, you can browse to
-`http://localhost/Sample1/SimpleServlet` on the Docker host.
-
-## Scenario Four: Use Kubernetes on LinuxONE to run your cloud-naive workloads
+## Scenario Three: Use Kubernetes on LinuxONE to run your cloud-naive workloads
 
 To begin with, we will set up a Kubernetes cluster.  A cluster requires a number
 of containers, namely: an `apiserver`, a `scheduler`, a `controller` and a
