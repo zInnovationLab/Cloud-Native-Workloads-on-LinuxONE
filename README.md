@@ -7,10 +7,10 @@ LinuxONE was built for open source so you can harness the agility of the open re
 ## Scenarios
 
 - [Scenario One: Use Docker images from Docker hub to run your workloads on LinuxONE](#scenario-one-use-docker-images-from-docker-hub-to-run-your-workloads-on-linuxone)
-     - 1. [WordPress](#3-run-and-install-wordpress)
-     - 2. [WebSphere Liberty]()
+      1. [WordPress](#1-install-and-run-wordpress)
+      2. [WebSphere Liberty](#2-install-and-run-websphere-liberty)
 - [Scenario Two: Create your own Docker images for LinuxONE](#scenario-two-create-your-own-docker-images-for-linuxone)
-     - 1. [GitLab]
+      1. [GitLab]()
 - [Scenario Three: Use Kubernetes on LinuxONE to run your cloud-naive workloads](#scenario-three-use-kubernetes-on-linuxone-to-run-your-cloud-naive-workloads)
 
 ## Included Components
@@ -63,9 +63,9 @@ Finally, install docker-compose itself
 sudo pip install docker-compose
 ```
 
-### 1. Run and install WordPress
+### 1. Install and run WordPress
 
-### 2. Run and install WebSphere Liberty
+### 2. Install and run WebSphere Liberty
 
 In this step, we will once again be using existing images from Docker Hub - this time to set up a WebSphere Application Server.  We will be implementing it for Java EE7 Full Platform compliance.
 
@@ -105,13 +105,7 @@ Once the server is started, you can browse to
 
 ## Scenario Two: Create your own Docker images for LinuxONE
 
-In our previous scenario, we used a couple of container images that had already
-been created and were waiting for our use in the Docker Hub Community.  But
-what if you are looking to run a workload that is not currently available
-there?  In this scenario, we will walk through the steps to create your own
-Docker images.  It helps to start with a base OS image; in this case we will be
-using Ubuntu ([s390x/ubuntu](https://hub.docker.com/r/s390x/ubuntu/)).  On top
-of which, we will use very popular repository, GitLab for this example.
+In our previous scenario, we used a couple of container images that had already been created and were waiting for our use in the Docker Hub Community.  But what if you are looking to run a workload that is not currently available there?  In this scenario, we will walk through the steps to create your own Docker images.  It helps to start with a base OS image; in this case we will be using Ubuntu ([s390x/ubuntu](https://hub.docker.com/r/s390x/ubuntu/)). On top of which, we will use very popular repository, GitLab for this example.
 
 ### 1. Setup
 
