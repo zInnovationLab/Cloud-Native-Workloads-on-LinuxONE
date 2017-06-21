@@ -12,7 +12,7 @@ LinuxONE was built for open source so you can harness the agility of the open re
 2. [Create your own Docker images for LinuxONE](#scenario-two-create-your-own-docker-images-for-linuxone)  
 2.1 [GitLab](#1-install-and-run-gitlab)  
 3. [Use container orchestrator on LinuxONE to run your cloud-naive workloads](#scenario-three-use-container-orechestrator-on-linuxone-to-run-your-cloud-naive-workloads)  
-3.1 [Kubernetes]()
+3.1 [Kubernetes](#1-install-and-run-kubernetes)
 
 ## Included Components
 
