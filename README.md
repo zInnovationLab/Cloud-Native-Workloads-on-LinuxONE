@@ -3,7 +3,6 @@
 Open source software has expanded from a low-cost alternative to a platform for enterprise databases, clouds and next-generation apps. These workloads need higher levels of scalability, security and availability from the underlying hardware infrastructure.
 
 LinuxONE was built for open source so you can harness the agility of the open revolution on the industry’s most secure, scalable and high-performing Linux server. In this journey we will show how to run open source Cloud-Native workloads on LinuxONE using Docker. We will show how existing LinuxONE docker images from docker hub can be used as is for deploying open source workloads. If the desired images don`t exist, we also show how you can create your own dokcer images for the workload.
-In addition, we also show how to launch a container orechestration platform like Kubernetes, which can then be used to host your container based workloads.
 
 ![linuxonedocker](images/linuxone-docker.png)
 
@@ -14,8 +13,6 @@ In addition, we also show how to launch a container orechestration platform like
 1.2 [WebSphere Liberty](#2-install-and-run-websphere-liberty)  
 2. [Scenario Two: Create your own Docker images for LinuxONE](#scenario-two-create-your-own-docker-images-for-linuxone)  
 2.1 [GitLab](#1-install-and-run-gitlab)  
-3. [Scenario Three: Use container orchestrator on LinuxONE to run your cloud-native workloads](#scenario-three-use-container-orechestrator-on-linuxone-to-run-your-cloud-native-workloads)  
-3.1 [Kubernetes](#1-install-and-run-kubernetes)
 
 ## Included Components
 
@@ -24,7 +21,6 @@ In addition, we also show how to launch a container orechestration platform like
 - [WordPress](https://workpress.com)
 - [GitLab](https://about.gitlab.com/)
 - [WebSphere Liberty](https://hub.docker.com/r/s390x/websphere-liberty/)
-- [Kubernetes](https://kubernetes.io/)
 
 ## Prerequisites
 
