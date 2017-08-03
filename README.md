@@ -128,15 +128,15 @@ Let's start off with everyone's favorite demo: an installation of WordPress. The
 
 In our previous scenario, we used a couple of container images that had already been created and were waiting for our use in the Docker Hub Community.  But what if you are looking to run a workload that is not currently available there?  In this scenario, we will walk through the steps to create your own Docker images.
 
-This time we will go through the process of migrating an existing docker-compose.yaml from another architecture to the LinuxONE architecture.
+This time we will go through the process of migrating an existing docker-compose.yaml from another architecture to the LinuxONE architecture. Note, that steps 1 to 5 are based on a F1 Stats app as an introduction to porting containers and step 6 is a simplification of the MEAN stack to use Angular 1 and a TODO application. Angular 1 makes extension and customization much easier. The code in [files/mean-docker](files/mean-docker) mirrors step 6 and while entirely possible to skip steps 1-5 and just start with step 6 to build the MEAN stack on LinuxONE, we highly recommend steps 1 to 5 are followed as a learning exercise.
 
 ### 1. Obtain the MEAN stack Docker components from GitHub
 
 The MEAN stack is a combination of several packages starting with MongoDB - which is the most popular OSS NoSQL DB. The M*EAN* components stand for Express.js, Angular.js, Node.js. Node.js is a JavaScript runtime, Express.js is a server framework and Angular.js is an all-purpose MVC/MVVN framework. We will use this [blog](https://scotch.io/tutorials/create-a-mean-app-with-angular-2-and-docker-compose) and this [source code](https://github.com/gangachris/mean-docker/tree/master/express-server) as a starting point. This blog is also useful if you're new to Angular.js/Express.js.
- 
-version: '2' # specify docker-compose version
 
 ```shell
+version: '2' # specify docker-compose version
+
 # Define the services/containers to be run
 services:
   angular: # name of the first service
@@ -147,7 +147,7 @@ services:
   express: #name of the second service
     build: express-server # specify the directory of the Dockerfile
     ports:
-      - "3000:3000" #specify ports forewarding0
+      - "3000:3000" #specify ports forwarding
     links:
       - database
 
@@ -163,10 +163,73 @@ The ```image:``` tag in the docker-compose.yaml and the base image name ```FROM 
 
 ### 3. Start the MEAN stack on LinuxONE.
 
-```docker-compose up``` point your browser to ```http://[host ip]:4200``` and enjoy!
+```docker-compose up``` point your browser to ```http://[host ip]:4200``` and you should now see the application.
 
 ### 4. Customizing the application
 
 All customizations to the application can be made in the [src](https://github.com/gangachris/mean-docker/tree/master/angular-client/src) folder for Angular.js and [api.js](https://github.com/gangachris/mean-docker/blob/master/express-server/routes/api.js) for Express.js. Then simply run the ```docker-compose down``` and ```docker-compose up``` to bring up the MEAN stack with your new code. You can do your application development on any platform, push to github, pull on LinuxONE and bring up the containers without needing any changes to your JavaScript code.
 
-Note, some version number updates were made to Angular's package.json to ensure major security flaws were fixed. The original blog was quite dated and the [new code](files/mean-docker) should be up to date.
+### 5. Customization and creation of a easy to modify base
+
+Angular 2 doesn't have the ecosystem or the IDE support that Angular 1 (i.e Angular) has. Angular 2 has a much higher learning curve (+ TypeScript). To make customizations and modifications easier, we have replaced Angular 2 with Angular 1 and replaced the core-app with a TODO application. The code for this is in [files/mean-docker](files/mean-docker) folder in this repo. Feel free to use this as a starter pack for Hackathons etc.
+
+After successfully running the  ```docker-compose up```, the terminal should show:
+```
+$ sudo docker-compose up
+Starting meandocker_database_1 ...
+Starting meandocker_database_1 ... done
+Starting meandocker_express_1 ...
+Starting meandocker_express_1 ... done
+Attaching to meandocker_database_1, meandocker_express_1
+database_1  | note: noprealloc may hurt performance in many applications
+```
+
+and if you point your browser to ```http://[ip of machine]:8080``` you should see
+
+![buildskynet](images/buildskynet.png)
+
+\* We do not condone building of a humanity destroying AI but if you did decide to do so, LinuxONE would be the best platform because of its unmatched security, I/O capabilities and uptime.
+
+As you add and remove things from your list, you should be able to see the data getting stored/erased from MongoDB. We used RoboMongo for this but you could use any MongoDB client of your choice.
+
+![robo-mongo](images/robomongo.png)
+
+## Troubleshooting
+
+Errors seen in building the node.js application could potentially come from the use of deprecated or discontinued versions of npms that may occur depending on the time of tutorial completion. To fix this, modify the (mean-docker/blob/master/angular-client/package.json)[https://github.com/gangachris/mean-docker/blob/master/angular-client/package.json] for the F1 app or the (files/mean-docker/express-server/package.json)[files/mean-docker/express-server/package.json] file for the TODO app. Confirm Node.js v6 compatibility as some npms are not backward compatible.
+
+If containers are not able to talk to each other, the docker daemon may need to be restarted.  Use ```top``` to find the PID of the daemon, use ```kill -9``` to end that process and then start the docker daemon again.
+
+You will see this message if you start this container without docker-compose. docker-compose links the containers networks so they're accessible to each other. It fills in the variables with the right connection info. To resolve, start this with docker-compose up in the mean-docker folder.
+
+```
+MongoError: failed to connect to server [database:27017] on first connect [MongoError: getaddrinfo ENOTFOUND database database:27017]
+    at Pool.<anonymous> (/usr/src/node_modules/mongodb-core/lib/topologies/server.js:328:35)
+    at emitOne (events.js:96:13)
+    at Pool.emit (events.js:188:7)
+    at Connection.<anonymous> (/usr/src/node_modules/mongodb-core/lib/connection/pool.js:280:12)
+    at Connection.g (events.js:292:16)
+    at emitTwo (events.js:106:13)
+    at Connection.emit (events.js:191:7)
+    at Socket.<anonymous> (/usr/src/node_modules/mongodb-core/lib/connection/connection.js:177:49)
+    at Socket.g (events.js:292:16)
+    at emitOne (events.js:96:13)
+    at Socket.emit (events.js:188:7)
+    at connectErrorNT (net.js:1021:8)
+    at _combinedTickCallback (internal/process/next_tick.js:80:11)
+    at process._tickCallback (internal/process/next_tick.js:104:9)
+```
+
+This error means you have a mongo instance from a previous run taking up the port. You may do a ```docker-compose down``` and then ```docker-compose up``` or ```docker kill [mongo container id from docker ps]```
+
+```
+Starting meandocker_database_1 ...
+Starting meandocker_database_1 ... error
+
+ERROR: for meandocker_database_1  Cannot start service database: driver failed programming external connectivity on endpoint meandocker_database_1 (93572e7c501c4acddc95740d079c60b199f2a554f
+1fa56565e7a8e28fca686fe): Bind for 0.0.0.0:27017 failed: port is already allocated
+
+ERROR: for database  Cannot start service database: driver failed programming external connectivity on endpoint meandocker_database_1 (93572e7c501c4acddc95740d079c60b199f2a554f1fa56565e7a8e
+28fca686fe): Bind for 0.0.0.0:27017 failed: port is already allocated
+ERROR: Encountered errors while bringing up the project.
+```
