@@ -14,7 +14,7 @@ If the desired images don't exist, we also show how you can create your own dokc
     1.1 [WebSphere Liberty](#1-install-and-run-websphere-liberty)     
     1.2 [WordPress](#2-install-and-run-wordpress)          
 2. [Scenario Two: Create your own Docker images for LinuxONE](#scenario-two-create-your-own-docker-images-for-linuxone)     
-    2.1 [MEAN Stack](#1-install-and-run-mean-application)
+    2.1 [MEAN Stack](#1-obtain-the-mean-stack-docker-components-from-github)
 
 ## Included Components
 
@@ -159,15 +159,17 @@ services:
 
 ### 2. Point to LinuxONE binaries of MongoDB and Node.js
 
-The ```image:``` tag in the docker-compose.yaml and the base image name ```FROM node:6``` for the [angular-client/Dockerfile](https://github.com/gangachris/mean-docker/blob/master/angular-client/Dockerfile) and [express-server/Dockerfile](https://github.com/gangachris/mean-docker/blob/master/express-server/Dockerfile) currently point to x86 version of the binaries. In order to run on the LinuxONE platform, we need to point them to the z architecture compatible binaries. A quick search on DockerHub will reveal [sinenomine/mongodb-s390x](https://hub.docker.com/r/sinenomine/mongodb-s390x/) and [s390x/ibmnode](https://hub.docker.com/r/s390x/ibmnode/). Just add a ```:latest``` tag to each and update the appropriate locations.
+The ``image:``` tag in the docker-compose.yml and the base image name ```FROM node:6``` for the [express-server/Dockerfile](https://github.com/gangachris/mean-docker/blob/master/express-server/Dockerfile) currently point to x86 version of the binaries. In order to run on the LinuxONE platform, we need to point them to the z architecture compatible binaries. A quick search on DockerHub will reveal [sinenomine/mongodb-s390x](https://hub.docker.com/r/sinenomine/mongodb-s390x/) and [s390x/ibmnode](https://hub.docker.com/r/s390x/ibmnode/). Just add a ```:latest``` tag and update the appropriate locations.
 
 ### 3. Start the MEAN stack on LinuxONE.
 
 ```docker-compose up``` point your browser to ```http://[host ip]:4200``` and you should now see the application.
 
+
 ### 4. Customizing the application
 
 All customizations to the application can be made in the [src](https://github.com/gangachris/mean-docker/tree/master/angular-client/src) folder for Angular.js and [api.js](https://github.com/gangachris/mean-docker/blob/master/express-server/routes/api.js) for Express.js. Then simply run the ```docker-compose down``` and ```docker-compose up``` to bring up the MEAN stack with your new code. You can do your application development on any platform, push to github, pull on LinuxONE and bring up the containers without needing any changes to your JavaScript code.
+
 
 ### 5. Customization and creation of a easy to modify base
 
