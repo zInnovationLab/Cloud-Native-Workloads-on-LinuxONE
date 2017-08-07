@@ -128,22 +128,28 @@ Let's start off with everyone's favorite demo: an installation of WordPress. The
 
 In our previous scenario, we used a couple of container images that had already been created and were waiting for our use in the Docker Hub Community.  But what if you are looking to run a workload that is not currently available there?  In this scenario, we will walk through the steps to create your own Docker images.
 
-This time we will go through the process of migrating an existing docker-compose.yaml from another architecture to the LinuxONE architecture. Note, that steps 1 to 5 are based on a F1 Stats app as an introduction to porting containers and step 6 is a simplification of the MEAN stack to use Angular 1 and a TODO application. Angular 1 makes extension and customization much easier. The code in [files/mean-docker](files/mean-docker) mirrors step 6 and while entirely possible to skip steps 1-5 and just start with step 6 to build the MEAN stack on LinuxONE, we highly recommend steps 1 to 5 are followed as a learning exercise.
+### 1. Create your application base
 
-### 1. Obtain the MEAN stack Docker components from GitHub
+The MEAN stack is a combination of several packages starting with MongoDB - which is the most popular OSS NoSQL DB. The M*EAN* components stand for Express.js, Angular.js, Node.js. Node.js is a JavaScript runtime, Express.js is a server framework and Angular.js is an all-purpose MVC/MVVN framework. We will use this [blog](https://scotch.io/tutorials/creating-a-single-page-todo-app-with-node-and-angular) as a starting point. This blog is also useful if you're new to Angular.js/Express.js.
 
-The MEAN stack is a combination of several packages starting with MongoDB - which is the most popular OSS NoSQL DB. The M*EAN* components stand for Express.js, Angular.js, Node.js. Node.js is a JavaScript runtime, Express.js is a server framework and Angular.js is an all-purpose MVC/MVVN framework. We will use this [blog](https://scotch.io/tutorials/create-a-mean-app-with-angular-2-and-docker-compose) and this [source code](https://github.com/gangachris/mean-docker/tree/master/express-server) as a starting point. This blog is also useful if you're new to Angular.js/Express.js.
+There are several proposed folder structures for MEAN apps based on best-practices but for this use-case, we'll keep things simple with the following (similar to the source blog):
+
+```
+base
+-app (Express routes and MongoDB connections)
+-config (MongoDB and other config parameters)
+-public (Frontend : Angular.js code, index page etc)
+```
+
+For simplicity, all these files will be under the [express-server](files/mean-docker/express-server) folder
+
+A docker-compose file will also be needed to combine this multi-container application. Notice how the docker-compose.yaml for LinuxONE is the same as it would be on any other platform.
 
 ```shell
 version: '2' # specify docker-compose version
 
 # Define the services/containers to be run
 services:
-  angular: # name of the first service
-    build: angular-client # specify the directory of the Dockerfile
-    ports:
-      - "4200:4200" # specify port forewarding
-
   express: #name of the second service
     build: express-server # specify the directory of the Dockerfile
     ports:
@@ -157,23 +163,13 @@ services:
       - "27017:27017" # specify port forewarding
 ```
 
-### 2. Point to LinuxONE binaries of MongoDB and Node.js
+To migrate the code into containers, we'll need to create a Dockerfile. The folder ```/usr/src``` in the container will store the JavaScript source code. As basic knowledge of Docker is assumed, we will not cover each step of the the [Dockerfile](files/mean-docker/express-server/Dockerfile).
 
-The ``image:``` tag in the docker-compose.yml and the base image name ```FROM node:6``` for the [express-server/Dockerfile](https://github.com/gangachris/mean-docker/blob/master/express-server/Dockerfile) currently point to x86 version of the binaries. In order to run on the LinuxONE platform, we need to point them to the z architecture compatible binaries. A quick search on DockerHub will reveal [sinenomine/mongodb-s390x](https://hub.docker.com/r/sinenomine/mongodb-s390x/) and [s390x/ibmnode](https://hub.docker.com/r/s390x/ibmnode/). Just add a ```:latest``` tag and update the appropriate locations.
+### 2. LinuxONE containers for MongoDB and Node.js
+
+The main difference between using Docker on other platforms vs Docker on LinuxONE is the addition of the ```s390x/``` identifier in front of the container. e.g ibmnode becomes s390x/ibmnode. Occasionally, an image may not exist under the ```s390/``` group and to solve this, a simple dockerhub search of the container name followed by a ```s390x``` will suffice. e.g ```s390x nodejs```. Multi-arch support will come out of box in Docker later this year so the addition of the s390x tag is only temporary.
 
 ### 3. Start the MEAN stack on LinuxONE.
-
-```docker-compose up``` point your browser to ```http://[host ip]:4200``` and you should now see the application.
-
-
-### 4. Customizing the application
-
-All customizations to the application can be made in the [src](https://github.com/gangachris/mean-docker/tree/master/angular-client/src) folder for Angular.js and [api.js](https://github.com/gangachris/mean-docker/blob/master/express-server/routes/api.js) for Express.js. Then simply run the ```docker-compose down``` and ```docker-compose up``` to bring up the MEAN stack with your new code. You can do your application development on any platform, push to github, pull on LinuxONE and bring up the containers without needing any changes to your JavaScript code.
-
-
-### 5. Customization and creation of a easy to modify base
-
-Angular 2 doesn't have the ecosystem or the IDE support that Angular 1 (i.e Angular) has. Angular 2 has a much higher learning curve (+ TypeScript). To make customizations and modifications easier, we have replaced Angular 2 with Angular 1 and replaced the core-app with a TODO application. The code for this is in [files/mean-docker](files/mean-docker) folder in this repo. Feel free to use this as a starter pack for Hackathons etc.
 
 After successfully running the  ```docker-compose up```, the terminal should show:
 ```
@@ -195,6 +191,10 @@ and if you point your browser to ```http://[ip of machine]:8080``` you should se
 As you add and remove things from your list, you should be able to see the data getting stored/erased from MongoDB. We used RoboMongo for this but you could use any MongoDB client of your choice.
 
 ![robo-mongo](images/robomongo.png)
+
+### 4. Customizing the application
+
+All customizations to the application can be made in the [express-server](files/mean-docker/express-server/) folder. Angular.js changes (i.e view and controller) go in [express-server/public](files/mean-docker/express-server/public), Express.js (i.e model and api routes) changes go in [express-server/app](files/mean-docker/express-server/app/models). Then simply run the ```docker-compose down``` and ```docker-compose up``` to bring up the MEAN stack with your new code. You can do your application development on any platform, push to github, pull on LinuxONE and bring up the containers without needing any changes to your JavaScript code.
 
 ## Troubleshooting
 
@@ -222,7 +222,7 @@ MongoError: failed to connect to server [database:27017] on first connect [Mongo
     at process._tickCallback (internal/process/next_tick.js:104:9)
 ```
 
-This error means you have a mongo instance from a previous run taking up the port. You may do a ```docker-compose down``` and then ```docker-compose up``` or ```docker kill [mongo container id from docker ps]```
+This error means you have a MongoDB instance from a previous run taking up the port. You may do a ```docker-compose down``` and then ```docker-compose up``` or ```docker kill [mongo container id from docker ps]```
 
 ```
 Starting meandocker_database_1 ...
